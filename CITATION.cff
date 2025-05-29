@@ -1,0 +1,29 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  Practice note for McElreath's (2020) "Statistical
+  Rethinking"
+message: >-
+  If you use this repository, please cite the original
+  source (McElreath 2020) and this repository using the
+  metadata of this repository. 
+type: software
+authors:
+  - given-names: Gede Primahadi Wijaya
+    family-names: Rajeg
+    email: primahadi_wijaya@unud.ac.id
+    affiliation: Udayana University
+    orcid: 'https://orcid.org/0000-0002-2047-8621'
+identifiers:
+  - type: url
+    value: 'https://github.com/gederajeg/stats-rethink'
+    description: GitHub repository
+repository-code: 'https://github.com/gederajeg/stats-rethink'
+keywords:
+  - Bayesian
+  - R
+  - Statistical Rethinking
+license: CC-BY-NC-SA-4.0
+date-released: '2025-05-29'
