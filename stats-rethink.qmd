@@ -1,0 +1,66 @@
+---
+title: "stats-rethink"
+author: "Gede Primahadi Wijaya Rajeg"
+bibliography: references.bib
+---
+
+# Overview
+
+A practice note for McElreath's [-@mcelreath2020] *Statistical Rethinking*.
+
+### 2.1.1 Counting possibilities
+
+-   a bag with marbles
+
+    -   4 marbles ✅
+
+    -   2 colours: blue and white ✅
+
+    -   QUESTION: how many marbles there are for each colour? 🤷‍♂️
+
+        -   **possibilities** (or "conjectures" [@mcelreath2020, 21]) of configuration of a given colour of the marbles:
+
+            1.  all 4 marbles are white (total 4 marbles)
+
+            2.  1 marble is blue and 3 marbles are white (total 4 marbles)
+
+            3.  2 marbles are blue and 2 marbles are white (total 4 marbles)
+
+            4.  3 marbles are blue and 1 marble is white (total 4 marbles)
+
+            5.  all 4 marbles are blue (total 4 marbles)
+
+    -   GOAL: which of those five possibilities/conjectures is most plausible, *given* "some **evidence** about the contents of the bag" [@mcelreath2020, 21, boldface mine].
+
+        -    the "evidence": data of pulling out a sequence of three marbles, "one at a time, replacing the marble each time and shaking the bag before drawing another marble" [@mcelreath2020, 21].
+
+            -   the "evidence": 2 blues and 1 white
+
+```{r}
+ways <- c( 0 , # conjecture/possibility 1
+           3 , # conjecture/possibility 2
+           8 , # conjecture/possibility 3
+           9 , # conjecture/possibility 4
+           0   # conjecture/possibility 5
+)
+ways/sum(ways)
+```
+
+## 2.3 Components of the Model
+
+### 2.3.1 Variables
+
+- target of inference: 
+
+    - *p* (the proportion of *water* on the globe)
+    
+    - this *p* cannot be observed
+    
+    - **unobserved variable** = **PARAMETER**
+    
+    - *p* is **un**observed, BUT, can be *inferred* from another variable, the **observed variable**
+    
+- observed variable:
+
+    - counts of *water* (*W*) and *land* (*L*)
+    
