@@ -1,10 +1,30 @@
 ---
 title: "Practice note for McElreath's (2020) \"Statistical Rethinking\""
-author: "Gede Primahadi Wijaya Rajeg"
+date: 2025-05-29
+date-modified: now
+author:
+  - name:
+      given: Gede Primahadi Wijaya
+      family: Rajeg
+    orcid: 0000-0002-2047-8621
+    url: https://udayananetworking.unud.ac.id/lecturer/880-gede-primahadi-wijaya-rajeg
+    affiliation:
+      name: Udayana University
+      department: Bachelor of English Literature, Faculty of Humanities
+      ringgold: 95322
+      isni: 0000000106926937
+      ror: https://ror.org/035qsg823
+format:
+  html:
+    code-fold: true
+    code-summary: "Show the code"
+license: "CC BY-NC-SA"
+citation: true
 bibliography: references.bib
 ---
-```{r}
+```{r setup}
 library(tidyverse)
+library(rethinking)
 ```
 
 # Overview
@@ -184,3 +204,85 @@ plot(p_grid,
 mtext("20 points")
 ```
 
+Trying [`R code 2.5`](https://github.com/rmcelreath/rethinking/blob/ac1b3b2cda83f3e14096e2d997a6e30ad109eeee/book_code_boxes.txt#L64). Cf. @fig-grid-approx-plot-different-prior.
+
+```{r grid-approximation-fig-2-point-5}
+#| label: fig-grid-approx-plot-different-prior
+#| fig-cap: "Probability of water posterior distribution of different priors (Based on R code 2.5)"
+
+prior_1 <- ifelse(p_grid < 0.5, 0, 1)
+prior_2 <- exp(-5 * abs(p_grid - 0.5))
+opar <- par(no.readonly = TRUE)
+
+unstd_posterior_1 <- likelihood * prior_1
+std_posterior_1 <- unstd_posterior_1/sum(unstd_posterior_1)
+
+unstd_posterior_2 <- likelihood * prior_2
+std_posterior_2 <- unstd_posterior_2/sum(unstd_posterior_2)
+
+par(mfcol = c(1, 2))
+plot(p_grid,
+     std_posterior_1,
+     type = "b",
+     xlab = "Probability of Water",
+     ylab = "Posterior Probability/Plausibility 01")
+mtext("20 points")
+
+plot(p_grid,
+     std_posterior_2,
+     type = "b",
+     xlab = "Probability of Water",
+     ylab = "Posterior Probability/Plausibility 02")
+mtext("20 points")
+par(opar)
+```
+
+### 2.4.4 Quadratic approximation
+
+- Gaussian distribution (or "normal" distribution) (p. 42)
+
+- the `quap()` function in the `rethinking` package
+
+```{r quadratic-approximation-in-globe-tosses}
+globe_quadapp <- quap(
+  alist(
+    
+    W ~ dbinom((W + L), prob = p), # binomial likelihood
+    p ~ dunif(0, 1) # uniform prior
+    
+  ),
+  data = list(W = 6, L = 3)
+)
+
+# display summary of quadratic approximation
+quad_app_summary <- rethinking::precis(globe_quadapp)
+quad_app_summary
+```
+
+- `mean` = posterior mean value of *p* (i.e., `r round(quad_app_summary$mean, 2)`)
+
+- `sd` = posterior standard deviation value of *p*
+
+- `5.5%` and `94.5%`  = 89% percentile interval
+
+Interpretation [@mcelreath2020, 43]:
+
+> _Assuming the posterior is Gaussian, it is maximized at_ _`r round(quad_app_summary$mean, 2)`_*, and its standard deviation is `r round(quad_app_summary$sd, 2)`*
+
+Comparing the analytical posterior with the quadratic approximation.
+
+```{r compare-analytical-and-quadratic-posterior}
+# analytical calc.
+W <- 6
+L <- 3
+
+curve(dbeta(x, W + 1, L + 1), from = 0, to = 1, col = "royalblue")
+
+# quadratic approximation
+curve(dnorm(x, mean = quad_app_summary$mean, sd = quad_app_summary$sd),
+      lty = 2, add = TRUE)
+```
+
+- exact/analytical posterior distribution in "royalblue"
+
+- quadratic (i.e., Gaussian/Normal Distribution) approximation in dashed black line
