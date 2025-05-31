@@ -1,8 +1,11 @@
 ---
-title: "stats-rethink"
+title: "Practice note for McElreath's (2020) \"Statistical Rethinking\""
 author: "Gede Primahadi Wijaya Rajeg"
 bibliography: references.bib
 ---
+```{r}
+library(tidyverse)
+```
 
 # Overview
 
@@ -35,8 +38,62 @@ A practice note for McElreath's [-@mcelreath2020] *Statistical Rethinking*.
         -    the "evidence": data of pulling out a sequence of three marbles, "one at a time, replacing the marble each time and shaking the bag before drawing another marble" [@mcelreath2020, 21].
 
             -   the "evidence": 2 blues and 1 white
+            
+```{r counting-of-ways-to-produce-data-from-conjecture, message = FALSE, warning = FALSE}
+#| label: tbl-initial-count
+#| tbl-cap: "Initial Count of The Number of Ways a Given Conjecture to Produce the Data Drawn (i.e., Blue, White, Blue marbles sequence)"
 
-```{r}
+# conjecture of (i) 4 marbles consisting of (ii) blue ("Bl") and white ("Wh") colours
+conjecture <- c("Wh Wh Wh Wh",
+                "Bl Wh Wh Wh",
+                "Bl Bl Wh Wh",
+                "Bl Bl Bl Wh",
+                "Bl Bl Bl Bl")
+draw1 <- "Bl"
+draw2 <- "Wh"
+draw3 <- "Bl"
+
+dats <- data.frame(conjecture, draw1, draw2, draw3)
+dats1 <- dats |> 
+  mutate(w_to_produce_draw1 = str_count(conjecture, draw1),
+         w_to_produce_draw2 = str_count(conjecture, draw2),
+         w_to_produce_draw3 = str_count(conjecture, draw3),
+         w_to_produce_all_draws = w_to_produce_draw1 * w_to_produce_draw2 * w_to_produce_draw3)
+dats1
+```
+### 2.1.2 Combining other information
+
+- updating plausibilities for each conjecture in generating the data
+
+- the first initial count in Section 2.1.3 is labelled *prior*
+
+```{r set-prior-data-marble}
+dats1_prior <- dats1 |> 
+  select(conjecture,
+         prior_counts = w_to_produce_all_draws)
+dats1_prior
+```
+- new data: "Bl" marble
+
+```{r combine-prior-and-new-data-marble}
+#| label: tbl-combine-prior-with-new-count
+#| tbl-cap: "Combining Prior Counts of Ways to Produce Data of Marbles Draw with the New Number of Ways to Produce the New Data"
+
+dats1_prior |> 
+  mutate(new_draw = "Bl") |> 
+  mutate(w_to_produce_draw4 = str_count(conjecture, new_draw)) |> 
+  relocate(new_draw, .after = conjecture) |> 
+  relocate(w_to_produce_draw4, .after = new_draw) |> 
+  mutate(new_w_to_produce_all_draws = prior_counts * w_to_produce_draw4) |> 
+  rename(new_ways = w_to_produce_draw4,
+         priors = prior_counts,
+         combined_count = new_w_to_produce_all_draws)
+```
+
+
+### 2.1.3 From counts to probability
+
+```{r probability-of-ways-to-produce-data}
 ways <- c( 0 , # conjecture/possibility 1
            3 , # conjecture/possibility 2
            8 , # conjecture/possibility 3
@@ -64,3 +121,66 @@ ways/sum(ways)
 
     - counts of *water* (*W*) and *land* (*L*)
     
+### 2.3.2 Definition
+
+- given the assumptions, count all the ways the data could arise
+
+    - for each of the possible values of the unobserved variabel, the PARAMETER (e.g., *p*), **define** the relative number (i.e., the _probability_) "that the values of each observed variable (i.e., the data) could arise." (p. 33)
+    
+    - for each of the PARAMETER, define **prior** plausibility of each value that the PARAMETER could take.
+    
+#### 2.3.2.1 Observed variable
+
+- "each specific value of *p* corresponds to a specific **plausibility** of the data" (p. 33)
+
+- computing the likelihood of the data of globe toss (i.e., 6 Ws in 9 tosses under any value of *p*)
+
+```{r code-2-2-dbinom}
+dbinom(x = 6, size = 9, prob = 0.5)
+# the output: the relative number of ways to get 6 Ws, given *p* = 0.5
+```
+
+::: {.callout-note title = "Rethinking: A central role of likelihood"}
+
+- assumption influential in Bayesian and non-Bayesian is "the distribution assigned to the data", that is the likelihood (p. 34)
+
+- use **likelihood** to explain Bayesian inference, not the priors (p. 34)
+
+:::
+
+## 2.4. Making the model go
+
+### 2.4.3 Grid approximation
+
+```{r grid-approximation-2-4-3}
+#| label: fig-grid-approx-plot
+#| fig-cap: "Probability of water posterior distribution"
+
+# define the grid
+grid_length_out <- 20
+p_grid <- seq(from = 0, to = 1, length.out = grid_length_out)
+
+# define prior
+## cf. p. 35 Overthinking for the prior as probability distribution summing up to 1
+prior <- rep(x = 1, times = grid_length_out)
+
+# compute likelihood at each value in grid
+likelihood <- dbinom(x = 6, # obs. var. of 6 Ws in the nine globe tosses
+                     size = 9, # nine globe tosses
+                     prob = p_grid)
+
+# compute the product of likelihood and prior = posterior
+unstandardised_posterior <- likelihood * prior
+
+# standardise the posterior to sum to 1
+std_posterior <- unstandardised_posterior/sum(unstandardised_posterior)
+
+# visualisation (Fig 2.7) ====
+plot(p_grid,
+     std_posterior,
+     type = "b",
+     xlab = "Probability of Water",
+     ylab = "Posterior Probability/Plausibility")
+mtext("20 points")
+```
+
